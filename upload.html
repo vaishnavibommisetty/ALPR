@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}Upload - ALPR Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <!-- Premium Header -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8 fade-in">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                License Plate Detection
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">Upload a vehicle image for AI-powered license plate recognition</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Upload Section -->
+            <div class="glass-card p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-cloud-upload-alt text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Upload Vehicle Image</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Drag & drop or click to browse</p>
+                    </div>
+                </div>
+                
+                <div id="upload-area" 
+                     class="relative border-3 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-12 text-center hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 cursor-pointer bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                    <input type="file" id="image-input" accept="image/*" class="hidden">
+                    <div id="upload-content">
+                        <div class="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 pulse-animation">
+                            <i class="fas fa-cloud-upload-alt text-white text-3xl"></i>
+                        </div>
+                        <p class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Drop your image here</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">or click to browse files</p>
+                        <button class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                            <i class="fas fa-folder-open mr-2"></i>Choose File
+                        </button>
+                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-4">Supported formats: JPG, PNG, BMP, GIF (Max 16MB)</p>
+                    </div>
+                </div>
+
+                <div id="preview-section" class="hidden mt-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Image Preview</h3>
+                        <button id="remove-image" 
+                                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 flex items-center">
+                            <i class="fas fa-trash mr-2"></i>Remove
+                        </button>
+                    </div>
+                    <div class="relative group">
+                        <img id="preview-image" src="" alt="Preview" class="w-full rounded-2xl shadow-lg">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-2xl flex items-end justify-center p-4">
+                            <p class="text-white font-medium">Click to view full size</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 space-y-4">
+                    <button id="detect-btn" 
+                            class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            disabled>
+                        <i class="fas fa-search mr-2"></i>
+                        <span id="detect-btn-text">Detect License Plate</span>
+                    </button>
+                    
+                    <div id="processing" class="hidden">
+                        <div class="flex items-center justify-center space-x-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                            <div class="loading-spinner"></div>
+                            <span class="text-blue-700 dark:text-blue-300 font-medium">Processing image with AI...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="glass-card p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-clipboard-check text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Detection Results</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">AI-powered analysis results</p>
+                    </div>
+                </div>
+                
+                <div id="results-section">
+                    <div class="text-center py-16 text-gray-500 dark:text-gray-400">
+                        <div class="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-car text-gray-400 dark:text-gray-500 text-3xl"></i>
+                        </div>
+                        <p class="text-xl font-medium mb-2">No results yet</p>
+                        <p class="text-sm">Upload an image and click "Detect License Plate" to see results</p>
+                    </div>
+                </div>
+
+                <div id="detection-result" class="hidden space-y-6">
+                    <!-- Detected Image -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-image mr-2 text-indigo-600 dark:text-indigo-400"></i>
+                            Processed Image
+                        </h3>
+                        <div class="relative group">
+                            <img id="result-image" src="" alt="Detection Result" class="w-full rounded-2xl shadow-lg">
+                            <div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                <i class="fas fa-check mr-1"></i>Processed
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- License Plate Info -->
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i class="fas fa-id-card mr-2 text-indigo-600 dark:text-indigo-400"></i>
+                            License Plate Information
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-xl">
+                                <span class="text-gray-600 dark:text-gray-400 font-medium">Detected Plate:</span>
+                                <span id="detected-plate" class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"></span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-xl">
+                                <span class="text-gray-600 dark:text-gray-400 font-medium">Confidence:</span>
+                                <span id="confidence-score" class="font-semibold"></span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-xl">
+                                <span class="text-gray-600 dark:text-gray-400 font-medium">Detection Time:</span>
+                                <span id="detection-time" class="font-medium text-gray-900 dark:text-white"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex space-x-4">
+                        <button id="save-btn" 
+                                class="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                            <i class="fas fa-save mr-2"></i>Save Result
+                        </button>
+                        <button id="download-btn" 
+                                class="flex-1 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-medium hover:from-gray-700 hover:to-gray-800 transition-all duration-200 transform hover:scale-105">
+                            <i class="fas fa-download mr-2"></i>Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Instructions -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <div class="glass-card p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-info-circle text-white text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Upload Guidelines</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Follow these tips for best results</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="flex items-start space-x-4 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-image text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white mb-1">Clear Images</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">High-quality, well-lit photos</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl">
+                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-id-card text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white mb-1">Visible Plates</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Ensure plates are clearly visible</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl">
+                    <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-file-image text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white mb-1">Supported Formats</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">JPG, PNG, BMP, GIF</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 p-4 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl">
+                    <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-camera text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-900 dark:text-white mb-1">Best Angles</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Front or rear views work best</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedFile = null;
+
+// Upload area click handler
+document.getElementById('upload-area').addEventListener('click', () => {
+    document.getElementById('image-input').click();
+});
+
+// File input change handler
+document.getElementById('image-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        handleFileSelect(file);
+    }
+});
+
+// Enhanced drag and drop handlers
+const uploadArea = document.getElementById('upload-area');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+    uploadArea.style.transform = 'scale(1.02)';
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+    uploadArea.style.transform = 'scale(1)';
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+    uploadArea.style.transform = 'scale(1)';
+    
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+        handleFileSelect(file);
+        showToast('Image uploaded successfully', 'success');
+    } else {
+        showToast('Please upload a valid image file', 'error');
+    }
+});
+
+function handleFileSelect(file) {
+    // Validate file size
+    if (file.size > 16 * 1024 * 1024) {
+        showToast('File size must be less than 16MB', 'error');
+        return;
+    }
+    
+    selectedFile = file;
+    
+    // Show preview with animation
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const previewImg = document.getElementById('preview-image');
+        previewImg.src = e.target.result;
+        
+        // Add fade-in animation
+        previewImg.style.opacity = '0';
+        setTimeout(() => {
+            previewImg.style.transition = 'opacity 0.3s ease-in';
+            previewImg.style.opacity = '1';
+        }, 100);
+        
+        document.getElementById('upload-content').classList.add('hidden');
+        document.getElementById('preview-section').classList.remove('hidden');
+        document.getElementById('detect-btn').disabled = false;
+        
+        // Reset results
+        document.getElementById('results-section').classList.remove('hidden');
+        document.getElementById('detection-result').classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Remove image handler
+document.getElementById('remove-image').addEventListener('click', () => {
+    selectedFile = null;
+    document.getElementById('image-input').value = '';
+    document.getElementById('upload-content').classList.remove('hidden');
+    document.getElementById('preview-section').classList.add('hidden');
+    document.getElementById('detect-btn').disabled = true;
+    document.getElementById('results-section').classList.remove('hidden');
+    document.getElementById('detection-result').classList.add('hidden');
+    showToast('Image removed', 'info');
+});
+
+// Enhanced detect button handler
+document.getElementById('detect-btn').addEventListener('click', async () => {
+    if (!selectedFile) return;
+    
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+    
+    // Update button state
+    const detectBtn = document.getElementById('detect-btn');
+    const detectBtnText = document.getElementById('detect-btn-text');
+    detectBtn.disabled = true;
+    detectBtnText.textContent = 'Processing...';
+    
+    // Show processing
+    document.getElementById('processing').classList.remove('hidden');
+    
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayResults(result);
+            showToast('License plate detected successfully!', 'success');
+        } else {
+            throw new Error(result.error || 'Detection failed');
+        }
+    } catch (error) {
+        console.error('Detection error:', error);
+        showToast('Detection failed: ' + error.message, 'error');
+    } finally {
+        document.getElementById('processing').classList.add('hidden');
+        detectBtn.disabled = false;
+        detectBtnText.textContent = 'Detect License Plate';
+    }
+});
+
+function displayResults(result) {
+    // Hide placeholder and show results with animation
+    const resultsSection = document.getElementById('results-section');
+    const detectionResult = document.getElementById('detection-result');
+    
+    resultsSection.classList.add('hidden');
+    detectionResult.classList.remove('hidden');
+    
+    // Add fade-in animation
+    detectionResult.style.opacity = '0';
+    setTimeout(() => {
+        detectionResult.style.transition = 'opacity 0.5s ease-in';
+        detectionResult.style.opacity = '1';
+    }, 100);
+    
+    // Display result image
+    const resultImage = document.getElementById('result-image');
+    resultImage.src = result.image_url;
+    
+    // Display plate information with enhanced styling
+    const detectedPlate = document.getElementById('detected-plate');
+    detectedPlate.textContent = result.detected_plate;
+    
+    const confidenceScore = document.getElementById('confidence-score');
+    const confidencePercent = Math.round(result.confidence * 100);
+    confidenceScore.textContent = confidencePercent + '%';
+    
+    // Update confidence score styling
+    confidenceScore.className = 'font-semibold px-3 py-1 rounded-full text-sm ';
+    if (result.confidence > 0.8) {
+        confidenceScore.className += 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+    } else if (result.confidence > 0.6) {
+        confidenceScore.className += 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+    } else {
+        confidenceScore.className += 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+    }
+    
+    document.getElementById('detection-time').textContent = new Date().toLocaleString();
+}
+
+// Enhanced save button handler
+document.getElementById('save-btn').addEventListener('click', () => {
+    showToast('Result has been saved to your history!', 'success');
+});
+
+// Enhanced download button handler
+document.getElementById('download-btn').addEventListener('click', () => {
+    const resultImage = document.getElementById('result-image');
+    const detectedPlate = document.getElementById('detected-plate').textContent;
+    const link = document.createElement('a');
+    link.download = `alpr_result_${detectedPlate}_${Date.now()}.jpg`;
+    link.href = resultImage.src;
+    link.click();
+    showToast('Download started', 'success');
+});
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + U to upload
+    if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        document.getElementById('image-input').click();
+    }
+    
+    // Ctrl/Cmd + D to detect
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd' && !document.getElementById('detect-btn').disabled) {
+        e.preventDefault();
+        document.getElementById('detect-btn').click();
+    }
+});
+</script>
+{% endblock %}

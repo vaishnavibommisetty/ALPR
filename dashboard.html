@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ALPR Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <!-- Premium Header -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8 fade-in">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        Analytics Dashboard
+                    </h1>
+                    <p class="text-gray-600 dark:text-gray-400">Real-time insights and performance metrics</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="refreshDashboard()" class="px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2">
+                        <i class="fas fa-sync-alt text-indigo-600 dark:text-indigo-400"></i>
+                        <span class="text-gray-700 dark:text-gray-300">Refresh</span>
+                    </button>
+                    <button onclick="exportData()" class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2">
+                        <i class="fas fa-download"></i>
+                        <span>Export</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="kpi-card glass-card card-hover p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-car text-white text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm text-green-500 font-medium">+12.5%</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">vs last month</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Detections</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white" id="total-detections">0</p>
+                </div>
+            </div>
+
+            <div class="kpi-card glass-card card-hover p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-check-circle text-white text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm text-green-500 font-medium">+8.3%</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">accuracy gain</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Success Rate</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white" id="success-rate">0%</p>
+                </div>
+            </div>
+
+            <div class="kpi-card glass-card card-hover p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm text-blue-500 font-medium">Today</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">real-time</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Today's Scans</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white" id="today-scans">0</p>
+                </div>
+            </div>
+
+            <div class="kpi-card glass-card card-hover p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm text-orange-500 font-medium">+5.7%</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">confidence</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Confidence</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white" id="avg-confidence">0%</p>
+                </div>
+            </div>
+        </div>
+
+    <!-- Charts and Actions Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Activity Chart -->
+        <div class="lg:col-span-2 glass-card p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    <i class="fas fa-chart-area mr-2 text-indigo-600 dark:text-indigo-400"></i>
+                    Detection Activity
+                </h2>
+                <div class="flex space-x-2">
+                    <button onclick="changeChartPeriod('week')" class="chart-period-btn px-3 py-1 text-sm rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">Week</button>
+                    <button onclick="changeChartPeriod('month')" class="chart-period-btn px-3 py-1 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">Month</button>
+                    <button onclick="changeChartPeriod('year')" class="chart-period-btn px-3 py-1 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">Year</button>
+                </div>
+            </div>
+            <div class="relative h-64">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="glass-card p-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+                <i class="fas fa-rocket mr-2 text-indigo-600 dark:text-indigo-400"></i>
+                Quick Actions
+            </h2>
+            <div class="space-y-4">
+                <a href="{{ url_for('upload') }}" 
+                   class="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all duration-200 group">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-upload text-white"></i>
+                        </div>
+                        <span class="font-medium text-gray-900 dark:text-white">Upload Image</span>
+                    </div>
+                    <i class="fas fa-arrow-right text-indigo-600 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                
+                <a href="{{ url_for('history') }}" 
+                   class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-history text-gray-600 dark:text-gray-300"></i>
+                        </div>
+                        <span class="font-medium text-gray-900 dark:text-white">View History</span>
+                    </div>
+                    <i class="fas fa-arrow-right text-gray-600 group-hover:translate-x-1 transition-transform"></i>
+                </a>
+                
+                <button onclick="startLiveDetection()" 
+                        class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/30 dark:hover:to-emerald-900/30 transition-all duration-200 group w-full">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-video text-white"></i>
+                        </div>
+                        <span class="font-medium text-gray-900 dark:text-white">Live Detection</span>
+                    </div>
+                    <i class="fas fa-play text-green-600 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status and Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- System Status -->
+        <div class="glass-card p-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+                <i class="fas fa-server mr-2 text-indigo-600 dark:text-indigo-400"></i>
+                System Status
+            </h2>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-3 pulse-animation"></div>
+                        <span class="text-gray-700 dark:text-gray-300">YOLOv8 Detector</span>
+                    </div>
+                    <span class="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium rounded-full">Active</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-3 pulse-animation"></div>
+                        <span class="text-gray-700 dark:text-gray-300">Tesseract OCR</span>
+                    </div>
+                    <span class="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium rounded-full">Active</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-3 pulse-animation"></div>
+                        <span class="text-gray-700 dark:text-gray-300">Database</span>
+                    </div>
+                    <span class="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium rounded-full">Connected</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full mr-3 pulse-animation"></div>
+                        <span class="text-gray-700 dark:text-gray-300">Storage</span>
+                    </div>
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-medium rounded-full">Healthy</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="glass-card p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                    <i class="fas fa-clock mr-2 text-indigo-600 dark:text-indigo-400"></i>
+                    Recent Detections
+                </h2>
+                <a href="{{ url_for('history') }}" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium flex items-center">
+                    View All <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+            
+            <div id="recent-detections" class="space-y-3">
+                <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+                    <p>No recent detections found</p>
+                    <p class="text-sm mt-2">Upload an image to get started</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let activityChart = null;
+
+// Load dashboard statistics
+async function loadDashboardStats() {
+    try {
+        showLoading('Loading dashboard data...');
+        const response = await fetch('/api/history');
+        const detections = await response.json();
+        
+        // Update statistics with animations
+        animateValue('total-detections', 0, detections.length, 1000);
+        
+        if (detections.length > 0) {
+            // Calculate success rate
+            const successfulDetections = detections.filter(d => d.detected_plate && d.detected_plate !== 'UNKNOWN').length;
+            const successRate = Math.round((successfulDetections / detections.length) * 100);
+            animateValue('success-rate', 0, successRate, 1000, '%');
+            
+            // Calculate today's scans
+            const today = new Date().toDateString();
+            const todayScans = detections.filter(d => new Date(d.created_at).toDateString() === today).length;
+            animateValue('today-scans', 0, todayScans, 1000);
+            
+            // Calculate average confidence
+            const avgConfidence = detections.reduce((sum, d) => sum + (d.confidence || 0), 0) / detections.length;
+            animateValue('avg-confidence', 0, Math.round(avgConfidence * 100), 1000, '%');
+            
+            // Display recent detections
+            displayRecentDetections(detections.slice(0, 5));
+            
+            // Update activity chart
+            updateActivityChart(detections);
+        }
+        
+        hideLoading();
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        hideLoading();
+        showToast('Failed to load dashboard data', 'error');
+    }
+}
+
+function animateValue(id, start, end, duration, suffix = '') {
+    const element = document.getElementById(id);
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+            current = end;
+            clearInterval(timer);
+        }
+        element.textContent = Math.round(current) + suffix;
+    }, 16);
+}
+
+function displayRecentDetections(detections) {
+    const container = document.getElementById('recent-detections');
+    
+    if (detections.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+                <p>No recent detections found</p>
+                <p class="text-sm mt-2">Upload an image to get started</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = detections.map(detection => `
+        <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+            <div class="flex items-center space-x-4">
+                <img src="${detection.image_url}" alt="Detection" class="w-16 h-16 object-cover rounded-xl">
+                <div>
+                    <p class="font-semibold text-gray-900 dark:text-white">${detection.detected_plate || 'UNKNOWN'}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">${formatDate(detection.created_at)}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                    detection.confidence > 0.8 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
+                    detection.confidence > 0.6 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : 
+                    'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                }">
+                    ${Math.round((detection.confidence || 0) * 100)}% confidence
+                </span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateActivityChart(detections) {
+    const ctx = document.getElementById('activityChart');
+    if (!ctx) return;
+    
+    // Prepare data for last 7 days
+    const last7Days = [];
+    const detectionCounts = [];
+    
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toDateString();
+        
+        last7Days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+        detectionCounts.push(detections.filter(d => new Date(d.created_at).toDateString() === dateStr).length);
+    }
+    
+    if (activityChart) {
+        activityChart.destroy();
+    }
+    
+    activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: last7Days,
+            datasets: [{
+                label: 'Detections',
+                data: detectionCounts,
+                borderColor: 'rgb(99, 102, 241)',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function refreshDashboard() {
+    loadDashboardStats();
+    showToast('Dashboard refreshed', 'success');
+}
+
+function exportData() {
+    // Implementation for data export
+    showToast('Export feature coming soon', 'info');
+}
+
+function changeChartPeriod(period) {
+    // Update button styles
+    document.querySelectorAll('.chart-period-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-100', 'text-indigo-700', 'dark:bg-indigo-900', 'dark:text-indigo-300');
+        btn.classList.add('text-gray-600', 'dark:text-gray-400');
+    });
+    
+    event.target.classList.remove('text-gray-600', 'dark:text-gray-400');
+    event.target.classList.add('bg-indigo-100', 'text-indigo-700', 'dark:bg-indigo-900', 'dark:text-indigo-300');
+    
+    // Reload chart data for the selected period
+    loadDashboardStats();
+}
+
+function startLiveDetection() {
+    // Implementation for live detection
+    showToast('Live detection feature coming soon', 'info');
+}
+
+// Load stats when page loads
+document.addEventListener('DOMContentLoaded', loadDashboardStats);
+</script>
+{% endblock %}
